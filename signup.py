@@ -4,59 +4,55 @@ from ldap3 import Server, Connection, ALL, MODIFY_REPLACE
 import ldap
 import ldap.modlist as modlist
 
+""""""
+
+
+#Cette fonction permet la connection a un serveur ldap
 def connect_ldap_server():
     try:
-
-        # Provide the hostname and port number of the openLDAP
-        server_uri = f"ldap://192.168.136.140:389"
+        server_uri = f"ldap://LDAP-SERVER:389"
         server = Server(server_uri, get_info=ALL)
-        # username and password can be configured during openldap setup
         connection = Connection(server,
                                 user='cn=admin,dc=ssirn,dc=local',
                                 password='admin')
-        bind_response = connection.bind()  # Returns True or False
+        bind_response = connection.bind()
         return connection
 
     except LDAPBindError as e:
         connection = e
 
-
+#Cette fonction permet de consulté l'annuaire ldap
 def get_ldap_users():
-    # Provide a search base to search for.
     search_base = 'dc=ssirn,dc=local'
-    # provide a uidNumber to search for. '*" to fetch all users/groups
     search_filter = '(uidNumber=*)'
-
-    # Establish connection to the server
     ldap_conn = connect_ldap_server()
     try:
-        # only the attributes specified will be returned
         ldap_conn.search(search_base=search_base,
                          search_filter=search_filter,
                          search_scope=SUBTREE,
-                         attributes=['cn', 'sn', 'uid', 'uidNumber'])
-        # search will not return any values.
-        # the entries method in connection object returns the results
+                         attributes=['cn', 'sn', 'uid', 'uidNumber','dc'])
+
+
         results = ldap_conn.entries
+        print(results)
     except LDAPException as e:
         results = e
 
 """ Create a new group """
+#Creation de Groupe
+def add_ldap_group(Gname,Gid):
 
-def add_ldap_group():
-
-    # set all the group attributes
     ldap_attr = {}
-    # object class for group should be mentioned.
-    ldap_attr['objectClass'] = ['top', 'posixGroup']
-    ldap_attr['gidNumber'] = '500'
 
-    # Bind connection to LDAP server
+    ldap_attr['objectClass'] = ['top', 'posixGroup']
+    ldap_attr['gidNumber'] = Gid
+
+    # Connection Au serveur
     ldap_conn = connect_ldap_server()
 
     try:
-        # this will add group1 to the base directory tree
-        response = ldap_conn.add('cn=tekup,dc=ssirn,dc=local',
+        # Ajout du Gname au liste de Groupe
+        response = ldap_conn.add(f'cn={Gname},ou=Group,dc=ssirn,dc=local',
                                   attributes=ldap_attr)
 
     except LDAPException as e:
@@ -71,14 +67,14 @@ def add_ldap_group():
 def add_new_user_to_group():
     # sample attributes
     ldap_attr = {}
-    ldap_attr['cn'] = "test user"
-    ldap_attr['sn'] = "AD"
+    ldap_attr['cn'] = "Fedi"
+    ldap_attr['sn'] = "Brichni"
 
-    # Bind connection to LDAP server
+    # Connection
     ldap_conn = connect_ldap_server()
 
     # this will create testuser inside group1
-    user_dn = "cn=testuser,cn=group1,dc=testldap,dc=com"
+    user_dn = "cn=Fedi,cn=ssirn,dc=ssirn,dc=local"
 
     try:
         # object class for a user is inetOrgPerson
