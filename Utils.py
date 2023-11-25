@@ -26,9 +26,9 @@ def make_user(ldap_conn):
     passwd=input("entrer votre password")
     passwd=hashlib.sha256(passwd.encode()).hexdigest()
     uid = nom + '.' + prenom
-    new_user_dn = f"uid={uid},ou=Group,dc=ssirn,dc=local"
+    new_user_dn = f"uid={uid},ou=tekup,dc=ssirn,dc=local"
     user=[
-        ('objectClass', [b'inetOrgPerson', b'posixAccount']),
+        ('objectClass', [b'top',b'Person',b'inetOrgPerson', b'posixAccount',b'organizationalPerson']),
         ('uid', [bytes(prenom+'.'+nom,encoding="ascii")]),
         ('cn', [bytes(prenom,encoding="ascii")]),
         ('sn', [bytes(nom,encoding="ascii")]),
@@ -40,7 +40,7 @@ def make_user(ldap_conn):
     ]
     ldap_conn.add_s(new_user_dn, user)
     ldap_conn.unbind()
-    return user
+
 
 
 
