@@ -13,6 +13,7 @@ def Keygen_rsa():
         public_exponent=65537,
         key_size=4096,
     )
+
     with open("key/to/store/key.pem", "wb") as f:
         f.write(key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -27,11 +28,15 @@ def gen_csr(key):
     # Generate a CSR
     csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
         # Provide various details about who we are.
-        x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "California"),
+        x509.NameAttribute(NameOID.COUNTRY_NAME, "TN"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "TN"),
         x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
         x509.NameAttribute(NameOID.ORGANIZATION_NAME, "My Company"),
         x509.NameAttribute(NameOID.COMMON_NAME, "mysite.com"),
+        x509.NameAttribute(NameOID.EMAIL_ADDRESS, "mysite.com"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "mysite.com"),
+        x509.NameAttribute(NameOID.SURNAME, "mysite.com"),
+        x509.NameAttribute(NameOID.USER_ID, "mysite.com"),
     ])).add_extension(
         x509.SubjectAlternativeName([
             # Describe what sites we want this certificate for.
