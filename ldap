@@ -1,0 +1,61 @@
+import ldap
+import hashlib
+
+class LdapService:
+    LDAP_ADMIN_PWD = "Mot de Passe du serveur ldap"
+    LDAP_SERVER = "ldap://localhost"
+    LDAP_GROUP = "ou=users"
+    LDAP_OU = "dc=mydomain,dc=com"
+    LDAP_ADMIN_DN = "cn=admin,dc=mydomain,dc=com"
+
+    def __init__(self, admin_pwd):
+        self.LDAP_ADMIN_PWD = admin_pwd
+
+    def login(self, username, password):
+        user_dn = f"cn={username},{self.LDAP_GROUP},{self.LDAP_OU}"
+
+        try:
+            ldap_conn = ldap.initialize(self.LDAP_SERVER)
+            ldap_conn.bind_s(user_dn, password)
+            result = ldap_conn.search_s(user_dn, ldap.SCOPE_BASE)
+            return result
+        except ldap.LDAPError as e:
+            return f"Authentication failed: {e}"
+
+    def register(self, user):
+        user_dn = f"cn={user['username']},{self.LDAP_GROUP},{self.LDAP_OU}"
+
+        try:
+            ldap_conn = ldap.initialize(self.LDAP_SERVER)
+            ldap_conn.simple_bind_s(self.LDAP_ADMIN_DN, self.LDAP_ADMIN_PWD)
+
+            user_attributes = [
+                ('objectClass', [b'inetOrgPerson']),
+                ('cn', [user['username'].encode('utf-8')]),
+                ('sn', [user['lastname'].encode('utf-8')]),
+                ('givenName', [user['firstname'].encode('utf-8')]),
+                ('mail', [user['email'].encode('utf-8')]),
+                ('userPassword', [self._encode_password(user['password'])]),
+            ]
+
+            ldap_conn.add_s(user_dn, user_attributes)
+            return None
+        except ldap.LDAPError as e:
+            return f"Registration failed: {e}"
+
+    def _encode_password(self, password):
+        return "{MD5}" + hashlib.md5(password.encode('utf-8')).hexdigest()
+
+ldap_service = LdapService(admin_pwd="<ur_admin_pwd>")
+login_result = ldap_service.login(username="testuser", password="testpassword")
+print(f"Login Result: {login_result}")
+
+new_user = {
+    "username": "newuser",
+    "firstname": "New",
+    "lastname": "User",
+    "email": "newuser@example.com",
+    "password": "newuserpassword"
+}
+registration_result = ldap_service.register(user=new_user)
+print(f"Registration Result: {registration_result}")
